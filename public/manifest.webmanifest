@@ -1,0 +1,9 @@
+{
+  "name": "Travel ME v6",
+  "short_name": "Travel ME",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#edf4f2",
+  "theme_color": "#0f766e",
+  "lang": "zh-Hant-TW"
+}
