@@ -17,7 +17,7 @@ function photoKey(spot: PhotoSpot) {
 }
 
 export function PhotoGuide({ day, spots, tasks, onDayChange, onUpdateTask, onOpenAiRating }: PhotoGuideProps) {
-  const days = Array.from(new Set(spots.map((spot) => spot.day));
+  const days = Array.from(new Set(spots.map((spot) => spot.day)));
   const visible = spots.filter((spot) => spot.day === day);
   const completed = visible.filter((spot) => tasks[photoKey(spot)]?.done).length;
   const favorites = visible.filter((spot) => tasks[photoKey(spot)]?.favorite).length;
