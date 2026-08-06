@@ -12,9 +12,10 @@ type HistoryPreviewProps = {
   onQueryChange: (query: string) => void;
   onToggle: (key: string) => void;
   onAskAi: (guide: HistoryGuide) => void;
+  showDaySelector?: boolean;
 };
 
-export function HistoryPreview({ day, query, guides, expandedKey, onDayChange, onQueryChange, onToggle, onAskAi }: HistoryPreviewProps) {
+export function HistoryPreview({ day, query, guides, expandedKey, onDayChange, onQueryChange, onToggle, onAskAi, showDaySelector = true }: HistoryPreviewProps) {
   const days = Array.from(new Set(guides.map((guide) => guide.day)));
   const filtered = guides.filter((guide) => {
     const searchable = `${guide.place}${guide.era}${guide.intro}${guide.formation}`.toLowerCase();
@@ -26,7 +27,7 @@ export function HistoryPreview({ day, query, guides, expandedKey, onDayChange, o
       <div className="sectionHead">
         <div><h2>📚 行前景點預習</h2><p>依行程預先整理，不需拍照，也不消耗 Gemini 額度。</p></div>
         <div className="historyFilters">
-          <label>Day<select value={day} onChange={(event) => onDayChange(Number(event.target.value))}>{days.map((item) => <option value={item} key={item}>Day {item}</option>)}</select></label>
+          {showDaySelector && <label>Day<select value={day} onChange={(event) => onDayChange(Number(event.target.value))}>{days.map((item) => <option value={item} key={item}>Day {item}</option>)}</select></label>}
           <label>搜尋<input value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="景點或關鍵字" /></label>
         </div>
       </div>
