@@ -2,7 +2,7 @@ import "./styles.css";
 import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
-  title: "Travel ME v6",
+  title: "Travel ME v7 Gemini Edition",
   description: "AI 購物、酒類、翻譯、景點與旅行管理助手",
   manifest: "/manifest.webmanifest"
 };
