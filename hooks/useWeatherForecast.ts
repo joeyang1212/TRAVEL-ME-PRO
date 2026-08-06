@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { fetchOpenMeteoForecast } from "../services/weather/openMeteo";
-import type { ItineraryStop, WeatherDay, WeatherHour } from "../types/travel";
+import { fetchWeatherForecast } from "../services/weather/openMeteo";
+import type { ItineraryDay, WeatherDay, WeatherHour } from "../types/travel";
 
 type WeatherState = {
   hours: WeatherHour[];
@@ -20,17 +20,17 @@ const initialState: WeatherState = {
   updatedAt: "",
 };
 
-export function useWeatherForecast(trip: ItineraryStop) {
+export function useWeatherForecast(trip: ItineraryDay) {
   const [state, setState] = useState<WeatherState>(initialState);
 
   const refresh = useCallback(async () => {
     setState((current) => ({ ...current, loading: true, error: "" }));
 
     try {
-      const forecast = await fetchOpenMeteoForecast(trip.lat, trip.lng);
+      const forecast = await fetchWeatherForecast(trip.lat, trip.lng);
       setState({
-        hours: forecast.hours,
-        days: forecast.days,
+        hours: forecast.hourly,
+        days: forecast.daily,
         loading: false,
         error: "",
         updatedAt: `${trip.city}｜${new Date().toLocaleString("zh-TW")}`,
