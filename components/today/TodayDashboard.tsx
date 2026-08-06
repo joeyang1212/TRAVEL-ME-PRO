@@ -1,8 +1,8 @@
-import type { ItineraryStop } from "../../types/travel";
+import type { ItineraryDay } from "../../types/travel";
 
 type TodayDashboardProps = {
   day: number;
-  trip: ItineraryStop;
+  trip: ItineraryDay;
   weatherLabel: string;
   humidity?: number;
   meetingTime?: string;
@@ -16,7 +16,7 @@ type TodayDashboardProps = {
   aiUsage: number;
   aiLimit: number;
   onDayChange: (day: number) => void;
-  itinerary: ItineraryStop[];
+  itinerary: ItineraryDay[];
 };
 
 export function TodayDashboard({
