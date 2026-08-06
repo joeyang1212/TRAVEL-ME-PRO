@@ -1,3 +1,5 @@
+"use client";
+
 import type { PhotoSpot, PhotoTask } from "../../types/travel";
 import { PhotoGuideCard } from "./PhotoGuideCard";
 
@@ -26,30 +28,18 @@ export function PhotoGuide({ day, spots, tasks, onDayChange, onUpdateTask, onOpe
         <div><h2>📸 Photo Guide Pro</h2><p>熱門拍法、Instagram 靈感、站位與拍照任務。</p></div>
         <label>顯示 Day<select value={day} onChange={(event) => onDayChange(Number(event.target.value))}>{days.map((item) => <option value={item} key={item}>Day {item}</option>)}</select></label>
       </div>
-
       <div className="photoMissionSummary">
         <article><small>今日拍照點</small><strong>{visible.length}</strong></article>
         <article><small>已完成</small><strong>{completed}</strong></article>
         <article><small>已收藏</small><strong>{favorites}</strong></article>
       </div>
-
       <div className="photoSpotGrid">
         {visible.map((spot) => {
           const key = photoKey(spot);
           const task = tasks[key];
-          return (
-            <PhotoGuideCard
-              key={key}
-              spot={spot}
-              task={task}
-              onToggleDone={(done) => onUpdateTask(spot, { done })}
-              onToggleFavorite={() => onUpdateTask(spot, { favorite: !task?.favorite })}
-              onOpenAiRating={() => onOpenAiRating(spot)}
-            />
-          );
+          return <PhotoGuideCard key={key} spot={spot} task={task} onToggleDone={(done) => onUpdateTask(spot, { done })} onToggleFavorite={() => onUpdateTask(spot, { favorite: !task?.favorite })} onOpenAiRating={() => onOpenAiRating(spot)} />;
         })}
       </div>
-
       {visible.length === 0 && <div className="emptyPhoto">這一天尚未建立專屬拍照攻略。</div>}
     </section>
   );
