@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
-const allowedModes = new Set(["shopping", "wine"]);
+const allowedModes = new Set(["shopping", "wine", "guide"]);
 
 export async function POST(request: Request) {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -28,7 +28,9 @@ export async function POST(request: Request) {
 
     const systemText = mode === "shopping"
       ? "你是 Travel ME 的紐西蘭購物顧問。使用繁體中文，先給一句結論，再整理價格、預算、重量、送禮與注意事項。不得虛構即時庫存、促銷、台灣通路或未提供的價格。"
-      : "你是 Travel ME 的紐西蘭酒類顧問。使用繁體中文，先給一句結論，再整理風格、搭餐、送禮、預算、重量與托運注意事項。不得虛構年份、評分、獎項、即時庫存或未提供的價格。";
+      : mode === "wine"
+        ? "你是 Travel ME 的紐西蘭酒類顧問。使用繁體中文，先給一句結論，再整理風格、搭餐、送禮、預算、重量與托運注意事項。不得虛構年份、評分、獎項、即時庫存或未提供的價格。"
+        : "你是 Travel ME 的紐西蘭景點導覽顧問。使用繁體中文，依使用者提供的景點資料，整理歷史背景、地質或形成原因、文化意義、現場觀察重點、建議停留時間與拍照提醒。不得虛構即時開放狀態、交通異動、天氣或未提供的歷史細節；不確定時要明確說明。";
 
     const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
