@@ -64,7 +64,10 @@ export function ShoppingWinePreview() {
     const key = photoKey(spot);
     setPhotoTasks((current) => ({
       ...current,
-      [key]: { key, done: false, favorite: false, ...current[key], ...patch }
+      [key]: {
+        ...(current[key] ?? { key, done: false, favorite: false }),
+        ...patch,
+      },
     }));
   }
 
