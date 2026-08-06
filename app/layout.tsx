@@ -1,4 +1,5 @@
 import "./styles.css";
+import "./day-selector-fix.css";
 import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
