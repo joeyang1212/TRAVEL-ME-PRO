@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { TodayDashboard } from "../today/TodayDashboard";
 import { WeatherForecast } from "../weather/WeatherForecast";
+import { DayRouteMap } from "../map/DayRouteMap";
 import { PhotoGuide } from "../photo/PhotoGuide";
 import { HistoryPreview } from "../history/HistoryPreview";
 import { ShoppingGrid } from "../shopping/ShoppingGrid";
@@ -10,6 +11,7 @@ import { ShoppingCartSummary } from "../shopping/ShoppingCartSummary";
 import { WineDatabase } from "../wine/WineDatabase";
 import { useWeatherForecast } from "../../hooks/useWeatherForecast";
 import { nzItinerary } from "../../data/nz/itinerary";
+import { nzRouteStops } from "../../data/nz/routeStops";
 import { nzProducts } from "../../data/nz/products";
 import { nzWines } from "../../data/nz/wines";
 import { nzPhotoSpots } from "../../data/nz/photoSpots";
@@ -23,19 +25,10 @@ type AssistantMode = "shopping" | "wine" | "guide";
 const AI_DAILY_LIMIT = 30;
 const AI_USAGE_STORAGE_KEY = "travel-me-ultimate-ai-usage";
 
-type DailyAiUsage = {
-  date: string;
-  count: number;
-};
+type DailyAiUsage = { date: string; count: number };
 
-function todayKey() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function photoKey(spot: PhotoSpot) {
-  return `${spot.day}-${spot.place}`;
-}
-
+function todayKey() { return new Date().toISOString().slice(0, 10); }
+function photoKey(spot: PhotoSpot) { return `${spot.day}-${spot.place}`; }
 function assistantTitle(mode: AssistantMode) {
   if (mode === "shopping") return "🛍️ AI 購物顧問";
   if (mode === "wine") return "🍷 AI 酒類顧問";
@@ -65,14 +58,10 @@ export function ShoppingWinePreview() {
       if (!saved) return;
       const parsed = JSON.parse(saved) as DailyAiUsage;
       setAiUsage(parsed.date === todayKey() ? parsed : { date: todayKey(), count: 0 });
-    } catch {
-      setAiUsage({ date: todayKey(), count: 0 });
-    }
+    } catch { setAiUsage({ date: todayKey(), count: 0 }); }
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem(AI_USAGE_STORAGE_KEY, JSON.stringify(aiUsage));
-  }, [aiUsage]);
+  useEffect(() => { localStorage.setItem(AI_USAGE_STORAGE_KEY, JSON.stringify(aiUsage)); }, [aiUsage]);
 
   const trip = nzItinerary[day - 1] ?? nzItinerary[0];
   const weather = useWeatherForecast(trip);
@@ -96,13 +85,7 @@ export function ShoppingWinePreview() {
 
   function updatePhotoTask(spot: PhotoSpot, patch: Partial<PhotoTask>) {
     const key = photoKey(spot);
-    setPhotoTasks((current) => ({
-      ...current,
-      [key]: {
-        ...(current[key] ?? { key, done: false, favorite: false }),
-        ...patch,
-      },
-    }));
+    setPhotoTasks((current) => ({ ...current, [key]: { ...(current[key] ?? { key, done: false, favorite: false }), ...patch } }));
   }
 
   function openPhotoRating(spot: PhotoSpot) {
@@ -124,10 +107,7 @@ export function ShoppingWinePreview() {
   }
 
   function openAssistant(mode: AssistantMode, prompt: string) {
-    setAiMode(mode);
-    setAiPrompt(prompt);
-    setAiAnswer("");
-    setAiError("");
+    setAiMode(mode); setAiPrompt(prompt); setAiAnswer(""); setAiError("");
   }
 
   async function askAssistant() {
@@ -137,33 +117,24 @@ export function ShoppingWinePreview() {
       setAiError(`今日 AI 建議上限已達 ${AI_DAILY_LIMIT} 次，請明天再試。`);
       return;
     }
-
-    setAiLoading(true);
-    setAiAnswer("");
-    setAiError("");
+    setAiLoading(true); setAiAnswer(""); setAiError("");
     try {
-      const response = await fetch("/api/assistant", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ mode: aiMode, prompt: aiPrompt }),
-      });
+      const response = await fetch("/api/assistant", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode: aiMode, prompt: aiPrompt }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "AI 回覆失敗");
       setAiAnswer(data.answer || "AI 沒有回傳內容。");
       setAiUsage({ date: todayKey(), count: currentUsage.count + 1 });
-    } catch (error) {
-      setAiError(error instanceof Error ? error.message : "AI 回覆失敗");
-    } finally {
-      setAiLoading(false);
-    }
+    } catch (error) { setAiError(error instanceof Error ? error.message : "AI 回覆失敗"); }
+    finally { setAiLoading(false); }
   }
 
   return (
     <main className="appShell">
-      <section className="hero"><div><small>ULTIMATE CANDIDATE</small><h1>Travel ME Ultimate</h1><p>Today、Weather、Photo、History、Shopping、Wine 與 Gemini 已整合到同一個候選頁。</p></div><div className="summaryCards"><article><small>Day</small><strong>{day}</strong></article><article><small>城市</small><strong>{trip.city}</strong></article><article><small>購物車</small><strong>{cartCount}</strong></article><article><small>今日必拍</small><strong>{dayPhotoSpots.length}</strong></article></div></section>
+      <section className="hero"><div><small>ULTIMATE CANDIDATE</small><h1>Travel ME Ultimate</h1><p>Today、Weather、Map、Photo、History、Shopping、Wine 與 Gemini 已整合到同一個候選頁。</p></div><div className="summaryCards"><article><small>Day</small><strong>{day}</strong></article><article><small>城市</small><strong>{trip.city}</strong></article><article><small>購物車</small><strong>{cartCount}</strong></article><article><small>今日必拍</small><strong>{dayPhotoSpots.length}</strong></article></div></section>
 
       <TodayDashboard day={day} trip={trip} weatherLabel={currentWeather ? `${currentWeather.temperature}°C` : weather.loading ? "更新中" : "尚未取得"} humidity={currentWeather?.humidity} photoTotal={dayPhotoSpots.length} photoDone={photoDone} recommendationCount={recommendationCount} cartTotalTwd={cartTotalTwd} remainingBudget={budget} projectedBudget={remainingBudget} aiUsage={aiUsage.date === todayKey() ? aiUsage.count : 0} aiLimit={AI_DAILY_LIMIT} onDayChange={setDay} itinerary={nzItinerary} />
       <WeatherForecast city={trip.city} hours={weather.hours} days={weather.days} loading={weather.loading} error={weather.error} updatedAt={weather.updatedAt} onRefresh={weather.refresh} />
+      <DayRouteMap day={day} stops={nzRouteStops} />
 
       {featureNotice && <section className="answer"><strong>功能接線狀態</strong><p>{featureNotice}</p><button onClick={() => setFeatureNotice("")}>關閉</button></section>}
 
