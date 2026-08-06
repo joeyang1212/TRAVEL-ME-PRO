@@ -10,13 +10,14 @@ type PhotoGuideProps = {
   onDayChange: (day: number) => void;
   onUpdateTask: (spot: PhotoSpot, patch: Partial<PhotoTask>) => void;
   onOpenAiRating: (spot: PhotoSpot) => void;
+  showDaySelector?: boolean;
 };
 
 function photoKey(spot: PhotoSpot) {
   return `${spot.day}-${spot.place}`;
 }
 
-export function PhotoGuide({ day, spots, tasks, onDayChange, onUpdateTask, onOpenAiRating }: PhotoGuideProps) {
+export function PhotoGuide({ day, spots, tasks, onDayChange, onUpdateTask, onOpenAiRating, showDaySelector = true }: PhotoGuideProps) {
   const days = Array.from(new Set(spots.map((spot) => spot.day)));
   const visible = spots.filter((spot) => spot.day === day);
   const completed = visible.filter((spot) => tasks[photoKey(spot)]?.done).length;
@@ -26,7 +27,7 @@ export function PhotoGuide({ day, spots, tasks, onDayChange, onUpdateTask, onOpe
     <section className="photoGuidePanel">
       <div className="sectionHead">
         <div><h2>📸 Photo Guide Pro</h2><p>熱門拍法、Instagram 靈感、站位與拍照任務。</p></div>
-        <label>顯示 Day<select value={day} onChange={(event) => onDayChange(Number(event.target.value))}>{days.map((item) => <option value={item} key={item}>Day {item}</option>)}</select></label>
+        {showDaySelector && <label>顯示 Day<select value={day} onChange={(event) => onDayChange(Number(event.target.value))}>{days.map((item) => <option value={item} key={item}>Day {item}</option>)}</select></label>}
       </div>
       <div className="photoMissionSummary">
         <article><small>今日拍照點</small><strong>{visible.length}</strong></article>
