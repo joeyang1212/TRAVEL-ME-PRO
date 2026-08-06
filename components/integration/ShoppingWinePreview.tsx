@@ -6,6 +6,8 @@ import { ShoppingCartSummary } from "../shopping/ShoppingCartSummary";
 import { WineDatabase } from "../wine/WineDatabase";
 import { nzProducts } from "../../data/nz/products";
 import { nzWines } from "../../data/nz/wines";
+import { buildShoppingPrompt } from "../../services/ai/shopping";
+import { buildWinePrompt } from "../../services/ai/wine";
 import type { CartItem, Product } from "../../types/travel";
 
 export function ShoppingWinePreview() {
@@ -17,6 +19,10 @@ export function ShoppingWinePreview() {
   const [aiMessage, setAiMessage] = useState("");
 
   const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.qty, 0), [cart]);
+  const cartWeight = useMemo(() => cart.reduce((sum, item) => sum + item.qty * item.unitWeightKg, 0), [cart]);
+  const cartTotalTwd = useMemo(() => Math.round(cart.reduce((sum, item) => sum + item.qty * item.unitPriceNzd, 0) * rate), [cart, rate]);
+  const remainingBudget = Math.max(0, budget - cartTotalTwd);
+  const remainingWeight = Math.max(0, weightLimit - cartWeight);
 
   function addToCart(product: Product) {
     setCart((current) => {
@@ -41,8 +47,8 @@ export function ShoppingWinePreview() {
       <section className="hero">
         <div>
           <small>ENGINEERING PREVIEW</small>
-          <h1>Shopping + Wine 資料模組測試</h1>
-          <p>商品與酒款已改由 data/nz 載入，畫面元件不再內嵌資料。</p>
+          <h1>Shopping + Wine AI Prompt Engine</h1>
+          <p>商品與酒款資料、UI 元件、AI Prompt 已分離，可獨立維護與測試。</p>
         </div>
         <div className="summaryCards">
           <article><small>Day</small><strong>{day}</strong></article>
@@ -61,11 +67,28 @@ export function ShoppingWinePreview() {
         </div>
       </section>
 
-      <ShoppingGrid products={nzProducts} day={day} rate={rate} onAddToCart={addToCart} onAskAi={(product) => setAiMessage(`AI 購物顧問：${product.name}`)} />
-      <ShoppingCartSummary items={cart} rate={rate} budgetTwd={budget} weightLimitKg={weightLimit} onRemove={(id) => setCart((items) => items.filter((item) => item.id !== id))} onToggleBought={(id) => setCart((items) => items.map((item) => item.id === id ? { ...item, bought: !item.bought } : item))} />
-      <WineDatabase wines={nzWines} rate={rate} onAskAi={(wine) => setAiMessage(`AI 酒類顧問：${wine.name}`)} />
+      <ShoppingGrid
+        products={nzProducts}
+        day={day}
+        rate={rate}
+        onAddToCart={addToCart}
+        onAskAi={(product) => setAiMessage(buildShoppingPrompt({ product, rate, remainingBudgetTwd: remainingBudget, remainingWeightKg: remainingWeight }))}
+      />
+      <ShoppingCartSummary
+        items={cart}
+        rate={rate}
+        budgetTwd={budget}
+        weightLimitKg={weightLimit}
+        onRemove={(id) => setCart((items) => items.filter((item) => item.id !== id))}
+        onToggleBought={(id) => setCart((items) => items.map((item) => item.id === id ? { ...item, bought: !item.bought } : item))}
+      />
+      <WineDatabase
+        wines={nzWines}
+        rate={rate}
+        onAskAi={(wine) => setAiMessage(buildWinePrompt({ wine, rate, remainingBudgetTwd: remainingBudget, remainingWeightKg: remainingWeight }))}
+      />
 
-      {aiMessage && <section className="answer"><strong>{aiMessage}</strong><p>正式接線時會開啟現有 Gemini 分析視窗。</p><button onClick={() => setAiMessage("")}>關閉</button></section>}
+      {aiMessage && <section className="answer"><strong>Prompt 預覽</strong><pre>{aiMessage}</pre><button onClick={() => setAiMessage("")}>關閉</button></section>}
     </main>
   );
 }
