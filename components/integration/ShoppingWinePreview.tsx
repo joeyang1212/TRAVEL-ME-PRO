@@ -10,13 +10,19 @@ import { buildShoppingPrompt } from "../../services/ai/shopping";
 import { buildWinePrompt } from "../../services/ai/wine";
 import type { CartItem, Product } from "../../types/travel";
 
+type AssistantMode = "shopping" | "wine";
+
 export function ShoppingWinePreview() {
   const [day, setDay] = useState(7);
   const [rate, setRate] = useState(19.5);
   const [budget, setBudget] = useState(30000);
   const [weightLimit, setWeightLimit] = useState(8);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [aiMessage, setAiMessage] = useState("");
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiMode, setAiMode] = useState<AssistantMode>("shopping");
+  const [aiAnswer, setAiAnswer] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
 
   const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.qty, 0), [cart]);
   const cartWeight = useMemo(() => cart.reduce((sum, item) => sum + item.qty * item.unitWeightKg, 0), [cart]);
@@ -42,13 +48,41 @@ export function ShoppingWinePreview() {
     });
   }
 
+  function openAssistant(mode: AssistantMode, prompt: string) {
+    setAiMode(mode);
+    setAiPrompt(prompt);
+    setAiAnswer("");
+    setAiError("");
+  }
+
+  async function askAssistant() {
+    if (!aiPrompt.trim()) return;
+    setAiLoading(true);
+    setAiAnswer("");
+    setAiError("");
+    try {
+      const response = await fetch("/api/assistant", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ mode: aiMode, prompt: aiPrompt })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "AI 回覆失敗");
+      setAiAnswer(data.answer || "AI 沒有回傳內容。");
+    } catch (error) {
+      setAiError(error instanceof Error ? error.message : "AI 回覆失敗");
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
   return (
     <main className="appShell">
       <section className="hero">
         <div>
           <small>ENGINEERING PREVIEW</small>
-          <h1>Shopping + Wine AI Prompt Engine</h1>
-          <p>商品與酒款資料、UI 元件、AI Prompt 已分離，可獨立維護與測試。</p>
+          <h1>Shopping + Wine AI Assistant</h1>
+          <p>資料、元件、Prompt 與 Gemini 文字分析已完成分層接線。</p>
         </div>
         <div className="summaryCards">
           <article><small>Day</small><strong>{day}</strong></article>
@@ -72,7 +106,7 @@ export function ShoppingWinePreview() {
         day={day}
         rate={rate}
         onAddToCart={addToCart}
-        onAskAi={(product) => setAiMessage(buildShoppingPrompt({ product, rate, remainingBudgetTwd: remainingBudget, remainingWeightKg: remainingWeight }))}
+        onAskAi={(product) => openAssistant("shopping", buildShoppingPrompt({ product, rate, remainingBudgetTwd: remainingBudget, remainingWeightKg: remainingWeight }))}
       />
       <ShoppingCartSummary
         items={cart}
@@ -85,10 +119,19 @@ export function ShoppingWinePreview() {
       <WineDatabase
         wines={nzWines}
         rate={rate}
-        onAskAi={(wine) => setAiMessage(buildWinePrompt({ wine, rate, remainingBudgetTwd: remainingBudget, remainingWeightKg: remainingWeight }))}
+        onAskAi={(wine) => openAssistant("wine", buildWinePrompt({ wine, rate, remainingBudgetTwd: remainingBudget, remainingWeightKg: remainingWeight }))}
       />
 
-      {aiMessage && <section className="answer"><strong>Prompt 預覽</strong><pre>{aiMessage}</pre><button onClick={() => setAiMessage("")}>關閉</button></section>}
+      {aiPrompt && <section className="answer">
+        <strong>{aiMode === "shopping" ? "🛍️ AI 購物顧問" : "🍷 AI 酒類顧問"}</strong>
+        <textarea value={aiPrompt} onChange={(event) => setAiPrompt(event.target.value)} rows={10} />
+        <div className="twoCol">
+          <button className="analyze" onClick={askAssistant} disabled={aiLoading}>{aiLoading ? "Gemini 回覆中…" : "送出給 Gemini"}</button>
+          <button onClick={() => { setAiPrompt(""); setAiAnswer(""); setAiError(""); }}>關閉</button>
+        </div>
+        {aiError && <p>⚠️ {aiError}</p>}
+        {aiAnswer && <div><h3>Gemini 建議</h3><p style={{ whiteSpace: "pre-wrap" }}>{aiAnswer}</p></div>}
+      </section>}
     </main>
   );
 }
