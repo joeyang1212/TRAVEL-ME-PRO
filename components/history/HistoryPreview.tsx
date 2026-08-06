@@ -1,3 +1,5 @@
+"use client";
+
 import type { HistoryGuide } from "../../types/travel";
 import { HistoryCard } from "./HistoryCard";
 
@@ -12,21 +14,11 @@ type HistoryPreviewProps = {
   onAskAi: (guide: HistoryGuide) => void;
 };
 
-export function HistoryPreview({
-  day,
-  query,
-  guides,
-  expandedKey,
-  onDayChange,
-  onQueryChange,
-  onToggle,
-  onAskAi,
-}: HistoryPreviewProps) {
+export function HistoryPreview({ day, query, guides, expandedKey, onDayChange, onQueryChange, onToggle, onAskAi }: HistoryPreviewProps) {
   const days = Array.from(new Set(guides.map((guide) => guide.day)));
   const filtered = guides.filter((guide) => {
-    const matchesDay = guide.day === day;
     const searchable = `${guide.place}${guide.era}${guide.intro}${guide.formation}`.toLowerCase();
-    return matchesDay && searchable.includes(query.toLowerCase());
+    return guide.day === day && searchable.includes(query.toLowerCase());
   });
 
   return (
@@ -38,14 +30,12 @@ export function HistoryPreview({
           <label>搜尋<input value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="景點或關鍵字" /></label>
         </div>
       </div>
-
       <div className="historyGrid">
         {filtered.map((guide) => {
           const key = `${guide.day}-${guide.place}`;
           return <HistoryCard key={key} guide={guide} expanded={expandedKey === key} onToggle={() => onToggle(key)} onAskAi={() => onAskAi(guide)} />;
         })}
       </div>
-
       {filtered.length === 0 && <div className="emptyPhoto">此日尚無符合條件的景點介紹。</div>}
     </section>
   );
