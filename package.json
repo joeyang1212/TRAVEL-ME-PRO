@@ -1,6 +1,6 @@
 {
-  "name": "travel-me-v11-today-group",
-  "version": "11.0.0",
+  "name": "travel-me-ultimate",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,16 +8,16 @@
     "start": "next start"
   },
   "dependencies": {
-    "@supabase/ssr": "0.6.1",
-    "@supabase/supabase-js": "2.49.4",
-    "next": "15.5.15",
-    "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "@supabase/ssr": "latest",
+    "@supabase/supabase-js": "latest",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest"
   },
   "devDependencies": {
-    "@types/node": "22.13.10",
-    "@types/react": "19.0.10",
-    "@types/react-dom": "19.0.4",
-    "typescript": "5.8.2"
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "latest"
   }
 }
