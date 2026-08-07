@@ -1,6 +1,7 @@
 import "./styles.css";
 import "./day-selector-fix.css";
 import "./ultimate-ui-v3.css";
+import "./google-travel-ui.css";
 import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
