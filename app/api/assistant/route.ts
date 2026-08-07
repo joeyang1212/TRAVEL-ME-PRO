@@ -30,7 +30,6 @@ export async function POST(request: Request) {
 
     const result = await generateGemini({
       parts: [{ text: `${systemText}\n\n${prompt}` }],
-      temperature: 0.2,
       maxOutputTokens: 1200,
     });
 
