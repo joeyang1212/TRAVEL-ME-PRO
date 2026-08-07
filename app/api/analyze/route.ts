@@ -58,7 +58,6 @@ export async function POST(request: Request) {
         { text: prompt },
         { inlineData: { mimeType: image.mimeType, data: image.data } }
       ],
-      temperature: 0.2,
       maxOutputTokens: 1800,
     });
 
