@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { TodayDashboard } from "../today/TodayDashboard";
 import { WeatherForecast } from "../weather/WeatherForecast";
 import { DayRouteMap } from "../map/DayRouteMap";
@@ -23,8 +23,20 @@ import type { CartItem, HistoryGuide, PhotoSpot, PhotoTask, Product } from "../.
 
 type AssistantMode = "shopping" | "wine" | "guide";
 
+type Scene = { label: string; image: string };
+
 const AI_DAILY_LIMIT = 30;
 const AI_USAGE_STORAGE_KEY = "travel-me-ultimate-ai-usage";
+
+const SCENES: Scene[] = [
+  { label: "Queenstown", image: "https://images.unsplash.com/photo-1507699622108-4be3abd695ad?auto=format&fit=crop&w=2200&q=88" },
+  { label: "Tekapo 星空", image: "https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=2200&q=88" },
+  { label: "Aoraki / Mt. Cook", image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2200&q=88" },
+  { label: "Milford Sound", image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2200&q=88" },
+  { label: "Wanaka 孤獨樹", image: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=2200&q=88" },
+];
+
+const DAY_SCENE_INDEX = [0, 0, 1, 2, 4, 3, 0, 1, 2, 4, 3];
 
 type DailyAiUsage = { date: string; count: number };
 
@@ -65,6 +77,8 @@ export function ShoppingWinePreview() {
   useEffect(() => { localStorage.setItem(AI_USAGE_STORAGE_KEY, JSON.stringify(aiUsage)); }, [aiUsage]);
 
   const trip = nzItinerary[day - 1] ?? nzItinerary[0];
+  const scene = SCENES[DAY_SCENE_INDEX[day - 1] ?? 0];
+  const shellStyle = { "--travel-bg": `url("${scene.image}")` } as CSSProperties;
   const weather = useWeatherForecast(trip);
   const currentWeather = weather.hours[0];
   const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.qty, 0), [cart]);
@@ -130,8 +144,24 @@ export function ShoppingWinePreview() {
   }
 
   return (
-    <main className="appShell">
-      <section className="hero"><div><small>ULTIMATE CANDIDATE</small><h1>Travel ME Ultimate</h1><p>Today、Weather、Map、Photo、History、Shopping、Wine 與 Gemini 已整合到同一個候選頁。</p></div><div className="summaryCards"><article><small>Day</small><strong>{day}</strong></article><article><small>城市</small><strong>{trip.city}</strong></article><article><small>購物車</small><strong>{cartCount}</strong></article><article><small>今日必拍</small><strong>{dayPhotoSpots.length}</strong></article></div></section>
+    <main className="appShell googleTravelShell" style={shellStyle}>
+      <section className="hero googleTravelHero">
+        <div className="googleHeroCopy">
+          <small>NEW ZEALAND · DAY {day} / {nzItinerary.length}</small>
+          <h1>{trip.city}</h1>
+          <p>{scene.label} · Travel ME 智慧旅行中心</p>
+          <div className="heroWeatherLine">
+            <strong>{currentWeather ? `${currentWeather.temperature}°C` : weather.loading ? "更新中" : "--°C"}</strong>
+            {currentWeather?.humidity != null && <span>濕度 {currentWeather.humidity}%</span>}
+          </div>
+        </div>
+        <div className="summaryCards googleSummaryCards">
+          <article><small>📅 行程進度</small><strong>{day} / {nzItinerary.length}</strong></article>
+          <article><small>📍 所在城市</small><strong>{trip.city}</strong></article>
+          <article><small>🛍️ 購物車</small><strong>{cartCount} 件</strong></article>
+          <article><small>📸 今日必拍</small><strong>{dayPhotoSpots.length} 個</strong></article>
+        </div>
+      </section>
 
       <TodayDashboard day={day} trip={trip} weatherLabel={currentWeather ? `${currentWeather.temperature}°C` : weather.loading ? "更新中" : "尚未取得"} humidity={currentWeather?.humidity} photoTotal={dayPhotoSpots.length} photoDone={photoDone} recommendationCount={recommendationCount} cartTotalTwd={cartTotalTwd} remainingBudget={budget} projectedBudget={remainingBudget} aiUsage={aiUsage.date === todayKey() ? aiUsage.count : 0} aiLimit={AI_DAILY_LIMIT} onDayChange={setDay} itinerary={nzItinerary} />
       <WeatherForecast city={trip.city} hours={weather.hours} days={weather.days} loading={weather.loading} error={weather.error} updatedAt={weather.updatedAt} onRefresh={weather.refresh} />
