@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { TodayDashboard } from "../today/TodayDashboard";
 import { WeatherForecast } from "../weather/WeatherForecast";
 import { DayRouteMap } from "../map/DayRouteMap";
+import { NzdTwdConverter } from "../currency/NzdTwdConverter";
 import { PhotoGuide } from "../photo/PhotoGuide";
 import { HistoryPreview } from "../history/HistoryPreview";
 import { ShoppingGrid } from "../shopping/ShoppingGrid";
@@ -141,7 +142,8 @@ export function ShoppingWinePreview() {
       <PhotoGuide day={day} spots={nzPhotoSpots} tasks={photoTasks} onDayChange={setDay} onUpdateTask={updatePhotoTask} onOpenAiRating={openPhotoRating} showDaySelector={false} />
       <HistoryPreview day={day} query={historyQuery} guides={nzHistoryGuides} expandedKey={expandedHistory} onDayChange={setDay} onQueryChange={setHistoryQuery} onToggle={(key) => setExpandedHistory((current) => current === key ? null : key)} onAskAi={openHistoryAi} showDaySelector={false} />
 
-      <section className="toolsPanel"><div className="inputGrid"><label>NZD/TWD<input type="number" step="0.1" value={rate} onChange={(event) => setRate(Number(event.target.value))} /></label><label>購物預算 TWD<input type="number" value={budget} onChange={(event) => setBudget(Number(event.target.value))} /></label><label>可用行李重量 kg<input type="number" step="0.1" value={weightLimit} onChange={(event) => setWeightLimit(Number(event.target.value))} /></label></div></section>
+      <NzdTwdConverter rate={rate} onRateChange={setRate} />
+      <section className="toolsPanel"><div className="inputGrid"><label>購物預算 TWD<input type="number" value={budget} onChange={(event) => setBudget(Number(event.target.value))} /></label><label>可用行李重量 kg<input type="number" step="0.1" value={weightLimit} onChange={(event) => setWeightLimit(Number(event.target.value))} /></label></div></section>
 
       <ShoppingGrid products={nzProducts} day={day} rate={rate} onAddToCart={addToCart} onAskAi={(product) => openAssistant("shopping", buildShoppingPrompt({ product, rate, remainingBudgetTwd: remainingBudget, remainingWeightKg: remainingWeight }))} />
       <ShoppingCartSummary items={cart} rate={rate} budgetTwd={budget} weightLimitKg={weightLimit} onRemove={(id) => setCart((items) => items.filter((item) => item.id !== id))} onToggleBought={(id) => setCart((items) => items.map((item) => item.id === id ? { ...item, bought: !item.bought } : item))} />
