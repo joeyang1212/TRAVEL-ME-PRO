@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { GeminiApiError, GeminiConfigError, generateGemini } from "../../../lib/gemini";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -21,14 +22,6 @@ function parseDataUrl(dataUrl: string) {
 }
 
 export async function POST(request: Request) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: "伺服器尚未設定 GEMINI_API_KEY。" },
-      { status: 503 }
-    );
-  }
-
   try {
     const body = await request.json();
     const mode = body.mode as Mode;
@@ -38,10 +31,7 @@ export async function POST(request: Request) {
 
     const image = parseDataUrl(String(body.imageDataUrl || ""));
     if (!image) {
-      return NextResponse.json(
-        { error: "請上傳 JPG、PNG 或 WEBP 圖片。" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "請上傳 JPG、PNG 或 WEBP 圖片。" }, { status: 400 });
     }
 
     const prompt = `
@@ -63,58 +53,25 @@ export async function POST(request: Request) {
 6. 不要宣稱已查到即時庫存、即時售價或即時評分，除非圖片內明確可見。
 `;
 
-    const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-    const url =
-      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        contents: [{
-          role: "user",
-          parts: [
-            { text: prompt },
-            { inlineData: { mimeType: image.mimeType, data: image.data } }
-          ]
-        }],
-        generationConfig: {
-          temperature: 0.2,
-          maxOutputTokens: 1800
-        }
-      })
+    const result = await generateGemini({
+      parts: [
+        { text: prompt },
+        { inlineData: { mimeType: image.mimeType, data: image.data } }
+      ],
+      temperature: 0.2,
+      maxOutputTokens: 1800,
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error("Gemini API error", response.status, data);
-      const message =
-        response.status === 429
-          ? "Gemini 免費額度或速率暫時已達上限，請稍後再試。"
-          : "Gemini 分析失敗，請稍後再試。";
-      return NextResponse.json({ error: message }, { status: response.status === 429 ? 429 : 502 });
-    }
-
-    const answer =
-      data?.candidates?.[0]?.content?.parts
-        ?.map((part: { text?: string }) => part.text || "")
-        .join("")
-        .trim();
-
-    if (!answer) {
-      return NextResponse.json(
-        { error: "Gemini 沒有回傳可顯示的結果。" },
-        { status: 502 }
-      );
-    }
-
-    return NextResponse.json({ answer, model });
+    return NextResponse.json(result);
   } catch (error) {
+    if (error instanceof GeminiConfigError) {
+      return NextResponse.json({ error: "AI 服務尚未連線。請檢查 Production 的 GEMINI_API_KEY，並重新部署。", code: "GEMINI_NOT_CONFIGURED" }, { status: 503 });
+    }
+    if (error instanceof GeminiApiError) {
+      console.error("Gemini analyze error", error.status, error.detail);
+      return NextResponse.json({ error: error.message, code: "GEMINI_PROVIDER_ERROR", providerStatus: error.status }, { status: error.status === 429 ? 429 : 502 });
+    }
     console.error(error);
-    return NextResponse.json(
-      { error: "Gemini 分析暫時失敗，請稍後再試。" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Gemini 分析暫時失敗，請稍後再試。", code: "AI_ANALYZE_ERROR" }, { status: 500 });
   }
 }
