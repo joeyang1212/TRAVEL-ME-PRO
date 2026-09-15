@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import Link from "next/link";
 import { TodayDashboard } from "../today/TodayDashboard";
 import { WeatherForecast } from "../weather/WeatherForecast";
 import { DayRouteMap } from "../map/DayRouteMap";
@@ -147,6 +148,7 @@ export function ShoppingWinePreview() {
     <main className="appShell googleTravelShell" style={shellStyle}>
       <section className="hero googleTravelHero">
         <div className="googleHeroCopy">
+          <nav className="mb-4 flex gap-2 text-sm"><Link className="rounded-full bg-white/20 px-3 py-1" href="/">🇳🇿 紐西蘭</Link><Link className="rounded-full bg-white/20 px-3 py-1" href="/aomori">🇯🇵 日本・青森</Link></nav>
           <small>NEW ZEALAND · DAY {day} / {nzItinerary.length}</small>
           <h1>{trip.city}</h1>
           <p>{scene.label} · Travel ME 智慧旅行中心</p>
